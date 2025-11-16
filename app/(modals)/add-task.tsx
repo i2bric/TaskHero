@@ -1,12 +1,12 @@
-// add-task.tsx
+// app/(modals)/add-task.tsx
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import { View, TextInput, Button, StyleSheet, Text } from "react-native";
 import { DatePickerModal, TimePickerModal } from "react-native-paper-dates";
 import uuid from "react-native-uuid";
 import { router } from "expo-router";
 import { loadTasks, saveTasks } from "../../storage/storage";
 
-export default function AddTaskScreen() {
+export default function AddTaskModal() {
   const [taskName, setTaskName] = useState("");
   const [deadline, setDeadline] = useState<Date | null>(null);
 
@@ -46,6 +46,8 @@ export default function AddTaskScreen() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Tambah Tugas</Text>
+
       <TextInput
         placeholder="Nama Tugas"
         value={taskName}
@@ -65,7 +67,7 @@ export default function AddTaskScreen() {
         visible={openDatePicker}
         onDismiss={() => setOpenDatePicker(false)}
         date={deadline || new Date()}
-        validRange={{ startDate: new Date() }} // tidak bisa pilih tanggal sudah lewat
+        validRange={{ startDate: new Date() }} // Tidak bisa pilih tanggal lewat
         onConfirm={(params) => {
           setOpenDatePicker(false);
           if (params.date) {
@@ -83,11 +85,7 @@ export default function AddTaskScreen() {
         minutes={deadline?.getMinutes() ?? 0}
         onConfirm={(params) => {
           setOpenTimePicker(false);
-          if (
-            params.hours != null &&
-            params.minutes != null &&
-            deadline
-          ) {
+          if (params.hours != null && params.minutes != null && deadline) {
             const updated = new Date(deadline);
             updated.setHours(params.hours);
             updated.setMinutes(params.minutes);
@@ -96,24 +94,40 @@ export default function AddTaskScreen() {
         }}
       />
 
-      <View style={{ height: 12 }} />
+      <View style={{ height: 16 }} />
+
       <Button
         title="Simpan"
         onPress={saveTask}
         disabled={!taskName || !deadline}
       />
+
       <View style={{ height: 12 }} />
-      <Button title="Batal" onPress={() => router.back()} />
+      <Button title="Batal" color="red" onPress={() => router.back()} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
-  input: {
-    borderWidth: 1,
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 20,
+  container: {
+    padding: 16,
+    gap: 12,
   },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  input: {
+  borderWidth: 1,
+  borderRadius: 8,
+  padding: 12,
+  marginBottom: 20,
+
+  // 🔥 Tambahan ini membuat text input terlihat
+  backgroundColor: "white",
+  color: "black",
+  borderColor: "#888",
+}
+
 });
