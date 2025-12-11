@@ -19,8 +19,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
+<<<<<<< HEAD
       "predictiveBackGestureEnabled": false,
       "package": "com.iiubric.TaskHero"
+=======
+      "predictiveBackGestureEnabled": false
+>>>>>>> d452de2 (Initial commit)
     },
     "web": {
       "output": "static",
@@ -44,12 +48,15 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+<<<<<<< HEAD
     },
     "extra": {
       "router": {},
       "eas": {
         "projectId": "38783d92-1845-44bf-94dc-2743d50b9d50"
       }
+=======
+>>>>>>> d452de2 (Initial commit)
     }
   }
 }
