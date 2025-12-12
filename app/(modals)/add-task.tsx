@@ -1,23 +1,37 @@
 // app/(modals)/add-task.tsx
-import React, { useState } from "react";
-import { View, TextInput, Button, StyleSheet, Text } from "react-native";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, useTheme } from "react-native-paper";
 import { DatePickerModal, TimePickerModal } from "react-native-paper-dates";
 import uuid from "react-native-uuid";
-import { router } from "expo-router";
 import { loadTasks, saveTasks } from "../../storage/storage";
+import {
+  registerForPushNotifications,
+  scheduleTaskNotification,
+} from "../../utils/notifications";
 
 export default function AddTaskModal() {
+  const theme = useTheme();
   const [taskName, setTaskName] = useState("");
   const [deadline, setDeadline] = useState<Date | null>(null);
+  const [tempDate, setTempDate] = useState<Date | null>(null);
 
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const [openTimePicker, setOpenTimePicker] = useState(false);
 
+  // Request notifikasi permission saat mount
+  useEffect(() => {
+    registerForPushNotifications();
+  }, []);
+
   const saveTask = async () => {
     if (!taskName || !deadline) return;
 
+    const taskId = uuid.v4().toString();
+
     const newTask = {
-      id: uuid.v4().toString(),
+      id: taskId,
       name: taskName,
       deadline: deadline.toLocaleString("id-ID", {
         day: "2-digit",
@@ -30,6 +44,9 @@ export default function AddTaskModal() {
 
     const tasks = await loadTasks();
     await saveTasks([...tasks, newTask]);
+
+    // Schedule notifikasi
+    await scheduleTaskNotification(taskId, taskName, deadline);
 
     router.back();
   };
@@ -45,20 +62,33 @@ export default function AddTaskModal() {
     });
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tambah Tugas</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.title, { color: theme.colors.onBackground }]}>
+        Tambah Tugas
+      </Text>
 
       <TextInput
         placeholder="Nama Tugas"
+        placeholderTextColor={theme.colors.outline}
         value={taskName}
         onChangeText={setTaskName}
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.surface,
+            color: theme.colors.onSurface,
+            borderColor: theme.colors.outline,
+          },
+        ]}
       />
 
       <Button
-        title={deadline ? formatDeadline(deadline) : "Pilih tanggal & waktu"}
+        mode="outlined"
         onPress={() => setOpenDatePicker(true)}
-      />
+        style={styles.dateButton}
+      >
+        {deadline ? formatDeadline(deadline) : "Pilih tanggal & waktu"}
+      </Button>
 
       {/* Date Picker */}
       <DatePickerModal
@@ -66,13 +96,13 @@ export default function AddTaskModal() {
         mode="single"
         visible={openDatePicker}
         onDismiss={() => setOpenDatePicker(false)}
-        date={deadline || new Date()}
-        validRange={{ startDate: new Date() }} // Tidak bisa pilih tanggal lewat
+        date={tempDate || new Date()}
+        validRange={{ startDate: new Date() }}
         onConfirm={(params) => {
           setOpenDatePicker(false);
           if (params.date) {
-            setDeadline(params.date);
-            setOpenTimePicker(true); // lanjut pilih waktu
+            setTempDate(params.date);
+            setOpenTimePicker(true);
           }
         }}
       />
@@ -81,12 +111,12 @@ export default function AddTaskModal() {
       <TimePickerModal
         visible={openTimePicker}
         onDismiss={() => setOpenTimePicker(false)}
-        hours={deadline?.getHours() ?? 12}
-        minutes={deadline?.getMinutes() ?? 0}
+        hours={tempDate?.getHours() ?? 12}
+        minutes={tempDate?.getMinutes() ?? 0}
         onConfirm={(params) => {
           setOpenTimePicker(false);
-          if (params.hours != null && params.minutes != null && deadline) {
-            const updated = new Date(deadline);
+          if (params.hours != null && params.minutes != null && tempDate) {
+            const updated = new Date(tempDate);
             updated.setHours(params.hours);
             updated.setMinutes(params.minutes);
             setDeadline(updated);
@@ -97,37 +127,57 @@ export default function AddTaskModal() {
       <View style={{ height: 16 }} />
 
       <Button
-        title="Simpan"
+        mode="contained"
         onPress={saveTask}
         disabled={!taskName || !deadline}
-      />
+        style={styles.saveButton}
+      >
+        Simpan
+      </Button>
+
+      <Text style={[styles.hint, { color: theme.colors.outline }]}>
+        💡 Notifikasi akan muncul 1 jam sebelum deadline
+      </Text>
 
       <View style={{ height: 12 }} />
-      <Button title="Batal" color="red" onPress={() => router.back()} />
+
+      <Button
+        mode="outlined"
+        onPress={() => router.back()}
+        textColor={theme.colors.error}
+      >
+        Batal
+      </Button>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 16,
-    gap: 12,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 20,
   },
   input: {
-  borderWidth: 1,
-  borderRadius: 8,
-  padding: 12,
-  marginBottom: 20,
-
-  // 🔥 Tambahan ini membuat text input terlihat
-  backgroundColor: "white",
-  color: "black",
-  borderColor: "#888",
-}
-
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+    fontSize: 16,
+  },
+  dateButton: {
+    marginBottom: 16,
+  },
+  saveButton: {
+    paddingVertical: 6,
+  },
+  hint: {
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: 8,
+  },
 });

@@ -1,112 +1,276 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+// app/(tabs)/explore.tsx
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Card, useTheme } from "react-native-paper";
+import { loadProgress, loadTasks } from "../../storage/storage";
+import { Task, UserProgress } from "../../storage/types";
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+export default function ExploreScreen() {
+  const theme = useTheme();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [progress, setProgress] = useState<UserProgress | null>(null);
 
-export default function TabTwoScreen() {
+  useFocusEffect(
+    useCallback(() => {
+      loadTasks().then(setTasks);
+      loadProgress().then(setProgress);
+    }, [])
+  );
+
+  if (!progress) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <Text style={{ color: theme.colors.onBackground }}>Loading...</Text>
+      </View>
+    );
+  }
+
+  const completedTasks = tasks.filter((t) => t.completed);
+  const activeTasks = tasks.filter((t) => !t.completed);
+  const overdueTasks = activeTasks.filter((t) => {
+    const deadline = parseDeadline(t.deadline);
+    return deadline && deadline < new Date();
+  });
+
+  const completionRate =
+    tasks.length > 0
+      ? Math.round((completedTasks.length / tasks.length) * 100)
+      : 0;
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      contentContainerStyle={styles.scrollContent}
+    >
+      <Text style={[styles.header, { color: theme.colors.onBackground }]}>
+        📊 Statistik & Info
+      </Text>
+
+      {/* Overview Card */}
+      <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+        <Card.Content>
+          <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
+            📈 Overview
+          </Text>
+
+          <View style={styles.statGrid}>
+            <View style={styles.statBox}>
+              <Text style={[styles.statNumber, { color: theme.colors.primary }]}>
+                {tasks.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Total Tugas
+              </Text>
+            </View>
+
+            <View style={styles.statBox}>
+              <Text style={[styles.statNumber, { color: "#4CAF50" }]}>
+                {completedTasks.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Selesai
+              </Text>
+            </View>
+
+            <View style={styles.statBox}>
+              <Text style={[styles.statNumber, { color: "#FF9800" }]}>
+                {activeTasks.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Aktif
+              </Text>
+            </View>
+
+            <View style={styles.statBox}>
+              <Text style={[styles.statNumber, { color: "#F44336" }]}>
+                {overdueTasks.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Terlambat
+              </Text>
+            </View>
+          </View>
+        </Card.Content>
+      </Card>
+
+      {/* Completion Rate */}
+      <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+        <Card.Content>
+          <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
+            ✅ Completion Rate
+          </Text>
+          <View style={styles.rateContainer}>
+            <Text style={[styles.rateNumber, { color: theme.colors.primary }]}>
+              {completionRate}%
+            </Text>
+            <Text style={[styles.rateText, { color: theme.colors.onSurfaceVariant }]}>
+              dari total tugas
+            </Text>
+          </View>
+        </Card.Content>
+      </Card>
+
+      {/* Progress Info */}
+      <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+        <Card.Content>
+          <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
+            🎯 Progress Hero
+          </Text>
+
+          <View style={styles.progressInfo}>
+            <View style={styles.progressRow}>
+              <Text style={[styles.progressLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Level:
+              </Text>
+              <Text style={[styles.progressValue, { color: theme.colors.primary }]}>
+                {progress.level}
+              </Text>
+            </View>
+
+            <View style={styles.progressRow}>
+              <Text style={[styles.progressLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Total EXP:
+              </Text>
+              <Text style={[styles.progressValue, { color: theme.colors.primary }]}>
+                {progress.exp}
+              </Text>
+            </View>
+
+            <View style={styles.progressRow}>
+              <Text style={[styles.progressLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Current Streak:
+              </Text>
+              <Text style={[styles.progressValue, { color: theme.colors.primary }]}>
+                {progress.currentStreak} hari
+              </Text>
+            </View>
+
+            <View style={styles.progressRow}>
+              <Text style={[styles.progressLabel, { color: theme.colors.onSurfaceVariant }]}>
+                Longest Streak:
+              </Text>
+              <Text style={[styles.progressValue, { color: theme.colors.primary }]}>
+                {progress.longestStreak} hari
+              </Text>
+            </View>
+          </View>
+        </Card.Content>
+      </Card>
+
+      {/* Tips Card */}
+      <Card style={[styles.card, { backgroundColor: theme.colors.surfaceVariant }]}>
+        <Card.Content>
+          <Text style={[styles.cardTitle, { color: theme.colors.onSurface }]}>
+            💡 Tips Produktif
+          </Text>
+          <Text style={[styles.tipText, { color: theme.colors.onSurfaceVariant }]}>
+            • Selesaikan tugas setiap hari untuk menjaga streak{"\n"}
+            • Setiap task selesai = +50 EXP{"\n"}
+            • Level up untuk unlock achievement{"\n"}
+            • Set deadline realistis untuk produktivitas maksimal
+          </Text>
+        </Card.Content>
+      </Card>
+    </ScrollView>
   );
 }
 
+// Helper function untuk parse deadline
+function parseDeadline(deadlineStr: string): Date | null {
+  try {
+    // Format: "DD/MM/YYYY, HH:MM"
+    const [datePart, timePart] = deadlineStr.split(", ");
+    const [day, month, year] = datePart.split("/");
+    const [hour, minute] = timePart.split(":");
+    
+    return new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day),
+      parseInt(hour),
+      parseInt(minute)
+    );
+  } catch {
+    return null;
+  }
+}
+
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  header: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+    marginTop: 8,
+  },
+  card: {
+    marginBottom: 16,
+    elevation: 2,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 16,
+  },
+  statGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  statBox: {
+    flex: 1,
+    minWidth: "45%",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    borderRadius: 12,
+  },
+  statNumber: {
+    fontSize: 32,
+    fontWeight: "bold",
+  },
+  statLabel: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  rateContainer: {
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  rateNumber: {
+    fontSize: 48,
+    fontWeight: "bold",
+  },
+  rateText: {
+    fontSize: 16,
+    marginTop: 8,
+  },
+  progressInfo: {
+    gap: 12,
+  },
+  progressRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0,0,0,0.1)",
+  },
+  progressLabel: {
+    fontSize: 16,
+  },
+  progressValue: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  tipText: {
+    fontSize: 14,
+    lineHeight: 22,
   },
 });
