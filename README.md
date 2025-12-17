@@ -27,7 +27,6 @@ Aplikasi ini dikembangkan menggunakan **React Native** dengan **Expo** framework
 - **Backend:** Convex (Real-time database)
 - **Routing:** Expo Router
 - **Styling:** React Native StyleSheet dengan Linear Gradients
-- **Storage:** AsyncStorage untuk preferences
 - **Notifications:** Expo Notifications
 
 ---
@@ -303,7 +302,6 @@ File `app.json` sudah dikonfigurasi untuk notifikasi:
 - `convex` - Real-time backend
 - `expo-linear-gradient` - Gradient backgrounds
 - `expo-notifications` - Local notifications
-- `@react-native-async-storage/async-storage` - Local storage
 - `@react-native-community/datetimepicker` - Date picker
 - `@expo/vector-icons` - Icon library
 
