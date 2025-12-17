@@ -34,25 +34,25 @@ Aplikasi ini dikembangkan menggunakan **React Native** dengan **Expo** framework
 
 ## 🌟 Fitur Utama
 
-| Fitur                      | Deskripsi                                                          |
-| -------------------------- | ------------------------------------------------------------------ |
-| 🎮 **Sistem Gamifikasi**   | Dapatkan XP dan level up setiap menyelesaikan tugas!               |
-| ⚡ **3 Tingkat Kesulitan** | Easy (30 XP), Medium (60 XP), Hard (100 XP)                        |
-| 📊 **Profil & Progress**   | Lihat level, XP, total tasks completed, dan progress bar           |
-| 🏆 **Sistem Title**        | Raih title eksklusif dari "Rookie Hero" hingga "Supreme Existence" |
-| ⏰ **Deadline System**     | Set deadline untuk setiap task dengan date & time picker           |
-| 🔔 **Smart Notifications** | Notifikasi otomatis 24 jam sebelum deadline (opsional)             |
-| 📜 **Task History**        | Lihat riwayat semua task yang telah diselesaikan                   |
-| ✏️ **Edit & Delete**       | Edit atau hapus task dengan mudah                                  |
-| 🌓 **Dark Mode**           | Toggle antara light dan dark theme                                 |
-| 🎨 **UI Modern**           | Gradient backgrounds, smooth animations, dan glassmorphism effects |
-| 💾 **Real-time Sync**      | Data tersimpan secara real-time menggunakan Convex                 |
-| 🔄 **Anti-Exploit System** | Task otomatis terhapus saat completed (tidak bisa di-uncomplete)   |
+| Fitur                          | Deskripsi                                                          |
+| ------------------------------ | ------------------------------------------------------------------ |
+| 🎮 **Sistem Gamifikasi**       | Dapatkan XP dan level up setiap menyelesaikan tugas!               |
+| ⚡ **3 Tingkat Kesulitan**     | Easy (30 XP), Medium (60 XP), Hard (100 XP)                        |
+| 📊 **Profil & Progress**       | Lihat level, XP, total tasks completed, dan progress bar           |
+| 🏆 **Sistem Title**            | Raih title eksklusif dari "Rookie Hero" hingga "Supreme Existence" |
+| ⏰ **Deadline System**         | Set deadline untuk setiap task dengan date & time picker           |
+| 🔔 **Smart Notifications**     | Notifikasi otomatis 24 jam sebelum deadline (opsional)             |
+| 📜 **Task History**            | Lihat riwayat semua task yang telah diselesaikan                   |
+| 🕐 **Completion Timestamps**   | Lihat kapan task diselesaikan dengan relative time & full datetime |
+| ✏️ **Edit & Delete**           | Edit atau hapus task dengan mudah                                  |
+| 🌓 **Dark Mode**               | Toggle antara light dan dark theme                                 |
+| 🎨 **UI Modern**               | Gradient backgrounds, smooth animations, dan glassmorphism effects |
+| 💾 **Real-time Sync**          | Data tersimpan secara real-time menggunakan Convex                 |
+| 🔄 **Anti-Exploit System**     | Task otomatis terhapus saat completed (tidak bisa di-uncomplete)   |
 
 ---
 
 ## 🧱 Struktur Project
-
 ```
 TaskHero/
 ├── .expo/                      # Expo configuration cache
@@ -75,7 +75,7 @@ TaskHero/
 │   └── styles/                # Global StyleSheet definitions
 │       ├── home.styles.ts
 │       ├── settings.styles.ts
-│       └── history.styles.ts
+│       └── history.styles.ts  # ✨ History page styles
 ├── components/
 │   ├── Header.tsx             # App header dengan logo TaskHero
 │   ├── ProfileBar.tsx         # Level, XP, title, progress bar display
@@ -130,7 +130,6 @@ TaskHero/
 ### Formula Level Up
 
 XP requirement tumbuh secara eksponensial untuk memberikan challenge yang progressif:
-
 ```typescript
 XP_Required = 100 × (1.5 ^ (level - 1))
 ```
@@ -176,10 +175,29 @@ XP_Required = 100 × (1.5 ^ (level - 1))
 
 ### 📜 Halaman History
 
-- Statistik: Total completed, Total XP earned, Overdue completed
-- Breakdown tasks by difficulty
-- List semua task yang telah diselesaikan
-- Informasi deadline & XP earned
+**Features:**
+- **Statistics Dashboard:**
+  - Total Completed Tasks
+  - Total XP Earned
+  - Overdue Completed Count
+  - Breakdown by difficulty (Easy/Medium/Hard)
+  
+- **Completion Timestamps:**
+  - Relative time untuk task baru-baru ini:
+    - "Just now" - < 1 menit
+    - "5m ago" - 5 menit lalu
+    - "3h ago" - 3 jam lalu
+    - "2d ago" - 2 hari lalu
+  - Full date & time untuk semua task:
+    - Date: "Dec 17, 2024"
+    - Time: "2:30 PM"
+  - Smart display: relative time (bold) + full datetime (detail)
+
+- **Task Information:**
+  - Task text
+  - Difficulty badge dengan emoji
+  - XP earned
+  - Overdue indicator (jika diselesaikan terlambat)
 
 ### ⚙️ Halaman Settings
 
@@ -199,7 +217,6 @@ XP_Required = 100 × (1.5 ^ (level - 1))
 ## 🚀 Cara Menjalankan Project
 
 ### Prerequisites
-
 ```bash
 node >= 18.x
 npm >= 9.x
@@ -208,20 +225,17 @@ npm >= 9.x
 ### Installation
 
 1. **Clone repository**
-
 ```bash
 git clone https://github.com/i2bric/TaskHero.git
 cd TaskHero
 ```
 
 2. **Install dependencies**
-
 ```bash
 npm install
 ```
 
 3. **Setup Convex**
-
 ```bash
 npx convex dev
 ```
@@ -229,13 +243,11 @@ npx convex dev
 _Ikuti instruksi untuk login dan setup Convex project_
 
 4. **Install native dependencies**
-
 ```bash
 npx expo install expo-notifications @react-native-async-storage/async-storage @react-native-community/datetimepicker
 ```
 
 5. **Run app**
-
 ```bash
 npx expo start
 ```
@@ -251,29 +263,31 @@ Scan QR code dengan:
 
 ### Environment Variables
 
-Buat file `.env` dan tambahkan:
+Buat file `.env.local` (auto-generated oleh Convex):
+```env
+EXPO_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+```
 
-```
-EXPO_PUBLIC_CONVEX_URL=your_convex_url_here
-```
+**Jangan commit `.env.local`** - sudah ada di `.gitignore`
 
 ### Notification Setup
 
-Edit `app.json` untuk konfigurasi notifikasi:
-
+File `app.json` sudah dikonfigurasi untuk notifikasi:
 ```json
 {
   "expo": {
     "plugins": [
-      [
-        "expo-notifications",
-        {
-          "color": "#6366f1"
-        }
-      ]
+      ["expo-notifications", {
+        "color": "#6366f1"
+      }]
     ],
     "android": {
       "permissions": ["POST_NOTIFICATIONS"]
+    },
+    "ios": {
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
     }
   }
 }
@@ -311,9 +325,16 @@ Edit `app.json` untuk konfigurasi notifikasi:
 
 ---
 
-## 🐛 Known Issues
+## 🔮 Future Improvements
 
-- ⚠️ Notifikasi tidak berfungsi di Expo Go (memerlukan development build)
-- ⚠️ Edit task belum support edit deadline & difficulty
+- [ ] Edit deadline & difficulty untuk existing tasks
+- [ ] Task categories/tags
+- [ ] Recurring tasks
+- [ ] Daily streak system
+- [ ] Achievement badges
+- [ ] Leaderboard social features
+- [ ] Export history to CSV/PDF
+- [ ] Widget support
+- [ ] Dark mode auto-schedule
 
 ---
